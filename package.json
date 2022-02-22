@@ -1,0 +1,39 @@
+{
+  "name": "@napp/logger",
+  "version": "2.0.1",
+  "description": "low level log archigture. minimum resources, user friendly, powerfull logger library. supported browser & nodejs",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "scripts": {
+    "clear": "npx rimraf lib/**",
+    "tsc": "tsc -p tsconfig.json",
+    "prebuild": "npm version patch && npm run clear",
+    "build": "tsc -p tsconfig.lib.json",
+    "prepush": "npm run build",
+    "push": "npm publish --access=public",
+    "test": "mocha"
+  },
+  "author": "farcek@gmail.com",
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Farcek/napp.git"
+  },
+  "devDependencies": {
+    "@testdeck/mocha": "latest",
+    "@types/chai": "latest",
+    "@types/mocha": "latest",
+    "@types/node": "latest",
+    "chai": "latest",
+    "mocha": "latest",
+    "source-map-support": "latest",
+    "ts-node": "latest",
+    "typescript": "latest"
+  },
+  "keywords": [
+    "logger",
+    "logging",
+    "logs",
+    "log"
+  ]
+}
