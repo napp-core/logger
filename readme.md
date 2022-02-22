@@ -1,21 +1,52 @@
 # common exception
 
-javascript basic logger library
+javascript minimum resources usage logger library.
+
+
+### key Features
+
+- minimum resources
+- saved preformice
+- user friendly
+- powerfull logger library
+- support browser
+- support nodejs
 
 
 
 
-# basic use
+### Log level: 
+fatal, error, warn, info, debug, trace
+
+
+## basic use
 
 ``` typescript
 
 const logger = getLogger('logname-1');
+logger.debug(m => m.message('basic log message'))
 
-logger.debug('log message debug', { foo : 'faa' })
-logger.info('log message info', { foo : 'faa' })
-logger.warn('log message warn', { foo : 'faa' })
-logger.error('log message error', { foo : 'faa' })
-logger.log(LoggerLevel.INFO,'log message  from log function', { foo : 'faa' })
+
+...
+
+
+try {
+    //...
+} catch (error) {
+    logger.error(m=>m.message('error log message').exeption(error))
+}
+
+
+...
+
+
+logger.error(m => {
+    return m
+        .message('error log message')
+        .attr({ a: 'foo', b: 'baa' })
+        .tag('tag1')
+        .tag('tag2', 'tag3')
+})
 
 
 ```
