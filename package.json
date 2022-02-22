@@ -9,7 +9,7 @@
     "tsc": "tsc -p tsconfig.json",
     "prebuild": "npm version patch && npm run clear",
     "build": "tsc -p tsconfig.lib.json",
-    "prepush": "npm run build",
+    "prepush": "npm run test && npm run build",
     "push": "npm publish --access=public",
     "test": "mocha"
   },
