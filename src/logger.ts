@@ -1,7 +1,6 @@
-import { ILogAttr, ILogItem, ILogMessage, OLogFactory } from "./common";
+import { ILogAttr, ILogItem, OLogFactory } from "./common";
 import { LogLevel } from "./level";
-import { LogLiner } from "./line";
-import { ILogLinerWriter, ILogWriter } from "./writer";
+import { ILogTrackWriter, ILogWriter } from "./writer";
 
 
 
@@ -11,7 +10,7 @@ interface ICanLog {
 
 
 interface HLogMessage {
-    (l: LogItem): LogItem
+    (l: (msg: string) => LogItem): LogItem
 }
 interface OLogger extends OLogFactory {
 
@@ -20,36 +19,62 @@ interface OLogger extends OLogFactory {
 
 
 class LogItem {
-    private _data: ILogItem;
-    constructor(level: LogLevel, logname: string) {
-        this._data = { timestamp: Date.now(), level, logname }
-    }
-    message(msg: ILogMessage) {
-        if (typeof msg === 'function') {
-            this._data.message = () => msg(this._data);
-        } else {
-            this._data.message = () => '' + msg;
-        }
 
-        return this;
+
+    private timestamp = Date.now();
+    private _attr?: ILogAttr;
+    private _tags?: string[];
+    private _errors?: Error[];
+
+    constructor(private logger: Logger, private level: LogLevel, private logname: string, private message: string) {
     }
+
     attr(p: { [k: string]: Object }) {
-        this._data.attr = { ...(this._data.attr || {}), ...p };
+        this._attr = { ...(this._attr || {}), ...p };
         return this;
     }
 
     exeption(...err: Error[]) {
-        this._data.errors = [...(this._data.errors || []), ...err]
+        this._errors = [...(this._errors || []), ...err]
         return this;
     }
 
-    tag(...tag: string[]) {
-        this._data.tags = [...(this._data.tags || []), ...tag]
+    tag(...tags: string[]) {
+        this._tags = [...(this._tags || []), ...tags]
         return this;
     }
 
-    get data() {
-        return this._data;
+    get data(): ILogItem {
+
+
+        return {
+            timestamp: this.timestamp,
+            level: this.level,
+            logname: this.logname,
+            message: () => this.message,
+            attrs: () => {
+                let lattr = this.logger.attr;
+                let mattr = this._attr;
+                if (mattr || lattr) {
+                    return { ...(lattr || {}), ...(mattr || {}) }
+                }
+
+                return undefined;
+            },
+            tags: () => {
+                let ltags = this.logger.tags;
+                let mtags = this._tags;
+
+                if (ltags || mtags) {
+                    let tags = [...(ltags || []), ...(mtags || [])]
+                    return [...new Set<string>(tags)]
+                }
+                return undefined;
+            },
+            errors: () => {
+                return this._errors;
+            }
+        }
     }
 
 }
@@ -57,7 +82,7 @@ class LogItem {
 export class Logger {
 
 
-    constructor(private logname: string, private canLog: ICanLog, private writer: ILogWriter, private lineWriter: ILogLinerWriter, private opt: OLogger) {
+    constructor(private logname: string, private canLog: ICanLog, private writer: ILogWriter, private trackWriter: ILogTrackWriter, private opt: OLogger) {
 
     }
 
@@ -81,8 +106,8 @@ export class Logger {
         return this.log(LogLevel.trace, h);
     }
 
-    async action<T>(actionName: string, message: ILogMessage, handle: () => Promise<T>, opt?: {
-       
+    action<T>(actionName: string, message: string, handle: () => T, opt?: {
+
         level?: {
             success?: LogLevel;
             fail?: LogLevel;
@@ -92,30 +117,33 @@ export class Logger {
         attr?: ILogAttr
     }) {
         try {
-            this.log(opt?.level?.request || LogLevel.trace, m => {
+            this.log(opt?.level?.request || LogLevel.trace, msg => {
+                let m = msg(message);
                 if (opt?.attr) {
                     m.attr(opt?.attr)
                 }
                 if (opt?.tags) {
                     m.tag(...opt?.tags)
                 }
-                return m.message(message).tag(`${actionName}.request`)
+                return m.tag(`${actionName}.request`)
             })
-            let r: T = await handle()
+            let r: T = handle()
 
-            this.log(opt?.level?.success || LogLevel.info, m => {
+            this.log(opt?.level?.success || LogLevel.info, msg => {
+                let m = msg(message);
                 if (opt?.attr) {
                     m.attr(opt?.attr)
                 }
                 if (opt?.tags) {
                     m.tag(...opt?.tags)
                 }
-                return m.message(message).tag(`${actionName}.success`)
+                return m.tag(`${actionName}.success`)
             })
 
             return r;
         } catch (error) {
-            this.log(opt?.level?.fail || LogLevel.error, m => {
+            this.log(opt?.level?.fail || LogLevel.error, msg => {
+                let m = msg(message);
                 if (error instanceof Error) {
                     m.exeption(error)
                 }
@@ -125,7 +153,7 @@ export class Logger {
                 if (opt?.tags) {
                     m.tag(...opt?.tags)
                 }
-                return m.message(message).tag(`${actionName}.success`)
+                return m.tag(`${actionName}.success`)
             })
             throw error;
         }
@@ -157,7 +185,8 @@ export class Logger {
                 if (lm) {
                     return lm;
                 }
-                lm = handler(new LogItem(level, this.logname));
+
+                lm = handler((msg: string) => new LogItem(this, level, this.logname, msg));
                 return lm;
             }
         })();
@@ -168,35 +197,37 @@ export class Logger {
             this.writer(lmer().data)
         }
 
-        let logline = this.logLine;
-        if (logline && level <= logline.lowLevel) {
-            this.lineWriter(lmer().data, logline.wnames)
+        let track = this.tracker;
+        if (track && level <= track.lowLevel) {
+            this.trackWriter(lmer().data, track.wnames)
         }
     }
 
 
 
-    child(logname: string, opt?: {
-        logLine?: LogLiner;
-        attr?: ILogAttr;
-        tags?: string[];
-    }) {
-        return new Logger(`${this.logname}.${logname}`, this.canLog, this.writer, this.lineWriter, {
+    child(logname: string, opt?: OLogFactory) {
+        return new Logger(`${this.logname}.${logname}`, this.canLog, this.writer, this.trackWriter, {
             parent: this,
             attr: opt?.attr,
             tags: opt?.tags,
-            logLine: opt?.logLine,
+            tracker: opt?.tracker,
         })
     }
 
 
-    get tags() {
-        return this.opt.tags || []
+    get tags(): string[] | undefined {
+        if (this.opt.parent) {
+            return [... (this.opt.parent.tags || []), ...(this.opt.tags || [])]
+        }
+        return this.opt.tags;
     }
-    get attr() {
-        return this.opt.attr || {}
+    get attr(): ILogAttr | undefined {
+        if (this.opt.parent) {
+            return { ... (this.opt.parent.attr || {}), ...(this.opt.attr || {}) }
+        }
+        return this.opt.attr;
     }
-    get logLine() {
-        return this.opt.logLine
+    get tracker() {
+        return this.opt.tracker
     }
 }

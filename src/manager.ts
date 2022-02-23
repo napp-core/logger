@@ -3,7 +3,7 @@ import { LevelStore } from "./store.level";
 import { Logger } from "./logger";
 import { WriterStore } from "./store.writer";
 import { ILogItem, OLogFactory } from "./common";
-import { ILogLinerWriter, ILogWriter } from "./writer";
+import { ILogTrackWriter, ILogWriter } from "./writer";
 
 export interface ILogWriterItem {
     name: string;
@@ -17,11 +17,11 @@ export function sampleLogWriter(): ILogWriter {
 
         console.log('')
         console.log('------------------------------------------------------------------------------------')
-        console.log(`[${new Date(l.timestamp).toLocaleString()}] [${LogLevel[l.level]}] [${l.logname}]`, l.tags && l.tags.map(it => '#' + it).join(', ') || '')
-        l.message && console.log(l.message())
+        console.log(`[${new Date(l.timestamp).toLocaleString()}] [${LogLevel[l.level]}] [${l.logname}]`, (l.tags() || []).map(it => '#' + it).join(', ') || '')
+        console.log(l.message())
         console.log('')
-        l.attr && console.log(JSON.stringify(l.attr))
-        l.errors && l.errors.map(e => console.error(e))
+        console.log('attr:', JSON.stringify(l.attrs()))
+        console.log((l.errors() || []).map(e => console.error(e)))
     }
 }
 
@@ -85,7 +85,7 @@ export function factoryLogManager() {
             d.writer(l)
         }
     }
-    const linerWrite: ILogLinerWriter = (l, wnames) => {
+    const trackWrite: ILogTrackWriter = (l, wnames) => {
         for (let n of wnames) {
             let w = writers.get(n.wname);
             if (w && l.level <= n.level) {
@@ -126,11 +126,11 @@ export function factoryLogManager() {
             return new Logger(logname,
                 (l) => canLog(logname, l),
                 (l) => write(l),
-                (l, names) => linerWrite(l, names),
+                (l, names) => trackWrite(l, names),
                 {
                     attr: opt?.attr,
                     tags: opt?.tags,
-                    logLine: opt?.logLine
+                    tracker: opt?.tracker
                 })
         }
     }

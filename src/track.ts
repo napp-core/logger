@@ -1,13 +1,13 @@
 import { LogLevel } from "./level";
 
-export class LogLiner {
+export class LogTracker {
 
     private values: {
         lowLevel: LogLevel,
         wnames: { wname: string, level: LogLevel }[]
     }
 
-    private constructor(private level: LogLevel, private wname: string, private parent: LogLiner | null) {
+    private constructor(private level: LogLevel, private wname: string, private parent: LogTracker | null) {
         let lowLevel = (() => {
             if (parent) {
                 return Math.max(this.level, parent.lowLevel);
@@ -43,14 +43,14 @@ export class LogLiner {
 
 
     chain(level: LogLevel, wname: string) {
-        return new LogLiner(level, wname, this);
+        return new LogTracker(level, wname, this);
     }
 
     static create(level: LogLevel, wname: string) {
-        return new LogLiner(level, wname, null);
+        return new LogTracker(level, wname, null);
     }
-    static createWithParent(level: LogLevel, wname: string, logLone: LogLiner) {
-        return new LogLiner(level, wname, logLone);
+    static createChain(level: LogLevel, wname: string, logLone: LogTracker) {
+        return new LogTracker(level, wname, logLone);
     }
 
 

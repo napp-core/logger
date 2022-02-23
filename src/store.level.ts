@@ -41,7 +41,7 @@ class LeveLStoreItem {
         return this.store.size < 1;
     }
 
-    get current() {
+    get lowLevel() {
         return this.value
     }
 
@@ -71,7 +71,7 @@ export class LevelStore {
 
     canLog(logname: string, level: LogLevel) {
         if (logname in this.store) {
-            let can = level <= this.store[logname].current;
+            let can = level <= this.store[logname].lowLevel;
             return { can, has: true };
         }
 

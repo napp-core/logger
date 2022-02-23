@@ -1,4 +1,4 @@
-import { LogLiner } from ".";
+import { LogTracker } from "./track";
 import { LogLevel } from "./level";
 
 
@@ -8,20 +8,25 @@ export interface ILogAttr {
 
 export type ILogMessage = string | { (l: ILogItem): string };
 
+
+
 export interface ILogItem {
     timestamp: number;
     level: LogLevel;
     logname: string;
-    message?: () => string;
-    attr?: ILogAttr;
-    errors?: Error[];
-    tags?: string[];
+    message: () => string;
+
+    attrs: () => ILogAttr | undefined
+    tags: () => string[] | undefined;
+    //attr?: ILogAttr;
+    errors: () => Error[] | undefined;
+
 }
 
 
 export interface OLogFactory {
 
-    logLine?: LogLiner
+    tracker?: LogTracker
 
     attr?: ILogAttr;
     tags?: string[];
