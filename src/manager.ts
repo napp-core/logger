@@ -1,16 +1,12 @@
 import { LogLevel } from "./level";
-import { LevelStore } from "./store.level";
-import { Logger } from "./logger";
-import { WriterStore } from "./store.writer";
-import { ILogItem, OLogFactory } from "./common";
-import { ILogTrackWriter, ILogWriter } from "./writer";
 
-export interface ILogWriterItem {
-    name: string;
-    logname: string
-    level: LogLevel;
-    writer: ILogWriter
-}
+import { Logger } from "./logger";
+
+import { ILogItem, OLogFactory } from "./common";
+import { ILogTrackWriter, ILogWriter, ILogWriterItem } from "./writer";
+import { LogTree } from "./tree";
+
+
 
 export function sampleLogWriter(): ILogWriter {
     return (l: ILogItem) => {
@@ -24,6 +20,8 @@ export function sampleLogWriter(): ILogWriter {
         console.log((l.errors() || []).map(e => console.error(e)))
     }
 }
+
+
 
 export function parseLogLevel(level: string) {
 
@@ -50,39 +48,24 @@ export function parseLogLevel(level: string) {
 
 export function factoryLogManager() {
     const writers = new Map<string, ILogWriterItem>();
-    const levelStore = new LevelStore();
-    const writeStore = new WriterStore();
 
 
+    const tree = new LogTree();
 
-    const d = {
-        writer: sampleLogWriter(),
-        level: LogLevel.trace
-    }
+    const uuid = (() => {
+        let id = Math.floor(Math.random() * 0xfffffff);
+        let nx = () => id < 0xfffffff ? ++id : id = 1;
+        return () => '' + Math.random().toString(36).substring(2) + nx().toString(36) + Date.now().toString(36);
+    })();
 
-    const canLog = (logname: string, level: LogLevel) => {
-        {
-            let { can, has } = levelStore.canLog(logname, level);
-
-            if (has) {
-                return can;
-            }
-        }
-
-        return level <= d.level;
-    }
 
     const write: ILogWriter = (l: ILogItem) => {
-        let wnames = writeStore.getWNames(l.logname);
-        if (wnames.length > 0) {
-            for (let n of wnames) {
-                let w = writers.get(n);
-                if (w && l.level <= w.level) {
-                    w.writer(l)
-                }
+        let witems = tree.needWriters(l.logname, l.level);
+        for (let n of witems) {
+            let w = writers.get(n.wname);
+            if (w) {
+                w.writer(l)
             }
-        } else {
-            d.writer(l)
         }
     }
     const trackWrite: ILogTrackWriter = (l, wnames) => {
@@ -96,35 +79,42 @@ export function factoryLogManager() {
 
     const addWriter = (witem: ILogWriterItem) => {
 
-        writeStore.add(witem)
-        levelStore.add(witem)
-        writers.set(witem.name, witem);
+        let wname = witem.wname || uuid();
+        if (writers.has(wname)) {
+            throw new Error('writer name daplicated')
+        }
+
+        writers.set(wname, witem);
+        tree.addWriter({ level: witem.level, logname: witem.logname || '', wname })
+
 
         return () => {
-            removeWriter(witem.name);
+            removeWriter(wname);
         }
     }
 
-    const removeWriter = (name: string) => {
+    const removeWriter = (wname: string) => {
 
-        let witem = writers.get(name);
+        let witem = writers.get(wname);
         if (witem) {
-            levelStore.remove(witem)
-            writeStore.remove(witem)
-            writers.delete(name);
+            tree.removeWriter({ level: witem.level, logname: witem.logname || '', wname })
+            writers.delete(wname);
         }
     }
 
 
 
     return {
-        defaultWriter: (writer: ILogWriter) => { d.writer = writer; },
-        defaultLevel: (level: LogLevel) => { d.level = level; },
+        /**
+         * 
+         * @returns witem remove function
+         */
         addWriter: (witem: ILogWriterItem) => addWriter(witem),
+        
         removeWriter: (name: string) => removeWriter(name),
         factoryLogger: (logname: string, opt?: OLogFactory) => {
             return new Logger(logname,
-                (l) => canLog(logname, l),
+                (l) => tree.needRunning(logname, l),
                 (l) => write(l),
                 (l, names) => trackWrite(l, names),
                 {
@@ -132,6 +122,7 @@ export function factoryLogManager() {
                     tags: opt?.tags,
                     tracker: opt?.tracker
                 })
-        }
+        },
+        logTreeObject : ()=>tree.toObject()
     }
 }

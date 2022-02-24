@@ -42,33 +42,36 @@ class TestTracker {
             this.buffer2.push({ ...m })
         }
 
-        this.LogManager.defaultWriter(wDefault)
         this.LogManager.addWriter({
-            name: 'w1', writer: (m: ILogItem) => {
+            level : LogLevel.info,
+            writer : wDefault
+        })
+        this.LogManager.addWriter({
+            wname: 'w1', writer: (m: ILogItem) => {
                 this.buffer1.push({ ...m })
             },
             level: LogLevel.info, logname: 'log1'
         })
 
         this.LogManager.addWriter({
-            name: 'w2', writer: writer2,
+            wname: 'w2', writer: writer2,
             level: LogLevel.info, logname: 'log2'
         });
 
         this.LogManager.addWriter({
-            name: 'w-job', writer: (m: ILogItem) => {
+            wname: 'w-job', writer: (m: ILogItem) => {
                 this.bufferJob.push({ ...m })
             },
             level: LogLevel.error, logname: 'log1'
         });
 
         this.LogManager.addWriter({
-            name: 'w-req', writer: wReq,
+            wname: 'w-req', writer: wReq,
             level: LogLevel.warn, logname: 'logreq'
         });
 
         this.LogManager.addWriter({
-            name: 'w-test', writer: (m: ILogItem) => {
+            wname: 'w-test', writer: (m: ILogItem) => {
                 this.bufferTest.push({ ...m })
             },
             level: LogLevel.warn, logname: 'nologname'
@@ -202,13 +205,13 @@ class TestTracker {
         const buffer2: ILogItem[] = []
 
         this.LogManager.addWriter({
-            name: 'wt-1', writer: (m: ILogItem) => {
+            wname: 'wt-1', writer: (m: ILogItem) => {
                 buffer1.push({ ...m })
             },
             level: LogLevel.error, logname: 'no1'
         })
         this.LogManager.addWriter({
-            name: 'wt-2', writer: (m: ILogItem) => {
+            wname: 'wt-2', writer: (m: ILogItem) => {
                 buffer2.push({ ...m })
             },
             level: LogLevel.error, logname: 'no2'
@@ -268,19 +271,19 @@ class TestTracker {
         const buffer3: ILogItem[] = []
 
         this.LogManager.addWriter({
-            name: 'wt-1', writer: (m: ILogItem) => {
+            wname: 'wt-1', writer: (m: ILogItem) => {
                 buffer1.push({ ...m })
             },
             level: LogLevel.error, logname: 'no1'
         })
         this.LogManager.addWriter({
-            name: 'wt-2', writer: (m: ILogItem) => {
+            wname: 'wt-2', writer: (m: ILogItem) => {
                 buffer2.push({ ...m })
             },
             level: LogLevel.error, logname: 'no2'
         })
         this.LogManager.addWriter({
-            name: 'wt-3', writer: (m: ILogItem) => {
+            wname: 'wt-3', writer: (m: ILogItem) => {
                 buffer3.push({ ...m })
             },
             level: LogLevel.error, logname: 'no2'

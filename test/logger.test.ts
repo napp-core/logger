@@ -35,22 +35,27 @@ class TestLogger {
             buffer2.push(m.message() || '')
         }
 
-        LogManager.defaultWriter(writer0)
-        LogManager.defaultLevel(LogLevel.info)
         LogManager.addWriter({
-            name: 'w1', writer: writer1,
+            wname: 'w0',
+            writer: writer0,
+            level: LogLevel.info
+        })
+        LogManager.addWriter({
+            wname: 'w1', writer: writer1,
             level: LogLevel.debug, logname: 'log1'
         })
         LogManager.addWriter({
-            name: 'w2', writer: writer2,
+            wname: 'w2', writer: writer2,
             level: LogLevel.error, logname: 'log2'
         })
+
+        
 
         const logger2 = LogManager.factoryLogger('log2');
         const logger0 = LogManager.factoryLogger('log0');
         const logger3 = LogManager.factoryLogger('log3');
 
-        
+
 
 
         logger0.t(m => m('t0'))
@@ -84,27 +89,29 @@ class TestLogger {
 
 
         assert.deepEqual(
-            buffer0.sort(),
             [
                 'i0', 'w0', 'e0', 'f0',
+                'i1', 'w1', 'e1', 'f1',
+                'i2', 'w2', 'e2', 'f2',
                 'i3', 'w3', 'e3', 'f3',
             ].sort(),
+            buffer0.sort(),
             "default log writer"
         )
 
         assert.deepEqual(
-            buffer1.sort(),
             [
                 'd1', 'i1', 'w1', 'e1', 'f1',
             ].sort(),
+            buffer1.sort(),
             "log1 writer"
         )
 
         assert.deepEqual(
-            buffer2.sort(),
             [
                 'e2', 'f2',
             ].sort(),
+            buffer2.sort(),
             "log2 writer"
         )
 
@@ -118,29 +125,31 @@ class TestLogger {
         logger2.e(m => m('e2'))
         logger2.f(m => m('f2'))
 
-        assert.deepEqual(
-            buffer2.sort(),
+        assert.deepEqual(           
             [
                 'e2', 'f2',
             ].sort(),
+            buffer2.sort(),
             "w2 agin checkr"
         )
 
         assert.deepEqual(
-            buffer0.sort(),
             [
                 'i0', 'w0', 'e0', 'f0',
+                'i1', 'w1', 'e1', 'f1',
+                'i2', 'w2', 'e2', 'f2',
                 'i2', 'w2', 'e2', 'f2',
                 'i3', 'w3', 'e3', 'f3',
 
             ].sort(),
+            buffer0.sort(),
             "log0 agin check"
         )
 
     }
 
 
-    @test
+     @test
     multiWrite() {
 
         const LogManager = factoryLogManager();
@@ -163,18 +172,23 @@ class TestLogger {
             buffer2.push(m.message() || '')
         }
 
-        LogManager.defaultWriter(writer0)
-        LogManager.defaultLevel(LogLevel.info)
+
         LogManager.addWriter({
-            name: 'w1',
+            level: LogLevel.info,
+            writer: writer0,
+        })
+        LogManager.addWriter({
+            wname: 'w1',
             logname: 'log1',
             level: LogLevel.debug,
             writer: writer1,
         })
         LogManager.addWriter({
-            name: 'w2', writer: writer2,
+            wname: 'w2', writer: writer2,
             level: LogLevel.error, logname: 'log1'
         })
+
+        // console.log(JSON.stringify(LogManager.logTreeObject(), undefined, 4))
 
         logger0.t(m => m('t0'))
         logger0.d(m => m('d0'))
@@ -202,6 +216,7 @@ class TestLogger {
             buffer0.sort(),
             [
                 'i0', 'w0', 'e0', 'f0',
+                'i1', 'w1', 'e1', 'f1',
                 'i2', 'w2', 'e2', 'f2',
             ].sort(),
             "default log writer"

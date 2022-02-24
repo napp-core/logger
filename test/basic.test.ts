@@ -14,8 +14,11 @@ class BasicTest {
         this.LogManager = factoryLogManager();
         this.buffer = [];
 
-        this.LogManager.defaultWriter((l) => {
-            this.buffer.push(l)
+        this.LogManager.addWriter({
+            level: LogLevel.info,
+            writer: (l) => {
+                this.buffer.push(l)
+            }
         })
     }
 
@@ -34,7 +37,7 @@ class BasicTest {
         )
     }
 
-    
+
 
     @test
     logAttr() {

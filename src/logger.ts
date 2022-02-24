@@ -153,7 +153,7 @@ export class Logger {
                 if (opt?.tags) {
                     m.tag(...opt?.tags)
                 }
-                return m.tag(`${actionName}.success`)
+                return m.tag(`${actionName}.fail`)
             })
             throw error;
         }

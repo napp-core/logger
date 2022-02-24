@@ -1,10 +1,37 @@
 export enum LogLevel {
     fatal = 0,
-    error = 1,
-    warn = 2,
-    info = 3,
-    debug = 4,
-    trace = 5
+    error = 10,
+    warn = 20,
+    info = 30,
+    debug = 40,
+    trace = 50
+}
+
+
+
+export function isHighLevel(_is: LogLevel, _v: LogLevel) {
+    return _is < _v ? true : false;
+}
+
+export function isEqHighLevel(_is: LogLevel, _v: LogLevel) {
+    return _is <= _v ? true : false;
+}
+
+export function isLowLevel(_is: LogLevel, _v: LogLevel) {
+    return _is > _v ? true : false;
+}
+export function getHighLevel(a: LogLevel | undefined, b: LogLevel) {
+    if (a === undefined) {
+        return b;
+    }
+    return a < b ? a : b;
+}
+
+export function getLowLevel(a: LogLevel | undefined, b: LogLevel) {
+    if (a === undefined) {
+        return b;
+    }
+    return a > b ? a : b;
 }
 
 export const LogColor = {
