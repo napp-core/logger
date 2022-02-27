@@ -15,9 +15,24 @@ export function sampleLogWriter(): ILogWriter {
         console.log('------------------------------------------------------------------------------------')
         console.log(`[${new Date(l.timestamp).toLocaleString()}] [${LogLevel[l.level]}] [${l.logname}]`, (l.tags() || []).map(it => '#' + it).join(', ') || '')
         console.log(l.message())
-        console.log('')
-        console.log('attr:', JSON.stringify(l.attrs()))
-        console.log((l.errors() || []).map(e => console.error(e)))
+        console.log('');
+        let attr = l.attrs();
+        try {
+            attr && console.log('attr:', JSON.stringify(attr));    
+        } catch (error) {
+            console.log('sampleLogWriter attr print error');
+            console.log(error);
+            console.log('attr:',attr);
+        }
+
+        let errs = l.errors() ;
+        try {
+            errs && errs.length && console.log(errs.map(e => console.error(e)))    
+        } catch (error) {
+            console.log('sampleLogWriter error print error');
+            console.log(error);
+            console.log('error:',errs);
+        }
     }
 }
 
