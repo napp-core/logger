@@ -222,8 +222,11 @@ export class Logger {
         return this.opt.tags;
     }
     get attr(): ILogAttr | undefined {
-        if (this.opt.parent) {
+        if (this.opt.parent && this.opt.attr) {
             return { ... (this.opt.parent.attr || {}), ...(this.opt.attr || {}) }
+        }
+        if (this.opt.parent) {
+            return this.opt.parent.attr
         }
         return this.opt.attr;
     }
