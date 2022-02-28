@@ -1,6 +1,6 @@
 {
   "name": "@napp/logger",
-  "version": "2.2.2",
+  "version": "2.2.3",
   "description": "low level log archigture. minimum resources, user friendly, powerfull logger library. supported browser & nodejs",
   "main": "lib/cjs/index.js",
   "module": "lib/esm/index.js",
