@@ -6,7 +6,7 @@
   "module": "lib/esm/index.js",
   "types": "lib/esm/index.d.ts",
   "scripts": {
-    "clear": "npx rimraf lib/**",
+    "clear": "npx rimraf --glob lib/**",
     "tsc": "tsc -p tsconfig.json",
     "prebuild": "npm version patch && npm run clear",
     "build:cjs": "tsc -p tsconfig.cjs.json",
