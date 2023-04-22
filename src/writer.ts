@@ -11,9 +11,5 @@ export interface ILogWriterItem {
     level: LogLevel;
     writer: ILogWriter
 }
-export interface ILogTrackWriter {
-    (l: ILogItem, wnames: { wname: string, level: LogLevel }[]): void
-}
-
 
 

@@ -1,6 +1,6 @@
 import { ILogAttr, ILogItem, OLogFactory } from "./common";
 import { LogLevel } from "./level";
-import { ILogTrackWriter, ILogWriter } from "./writer";
+import { ILogWriter } from "./writer";
 
 
 
@@ -11,6 +11,16 @@ interface ICanLog {
 
 interface HLogMessage {
     (l: (msg: string) => LogItem): LogItem
+
+
+}
+interface HLogMessageOpt {
+    attrs?: ILogAttr
+    tags?: string[]
+    //attr?: ILogAttr;
+    errors?: Error[];
+
+
 }
 interface OLogger extends OLogFactory {
 
@@ -82,7 +92,7 @@ class LogItem {
 export class Logger {
 
 
-    constructor(private logname: string, private canLog: ICanLog, private writer: ILogWriter, private trackWriter: ILogTrackWriter, private opt: OLogger) {
+    constructor(private logname: string, private canLog: ICanLog, private writer: ILogWriter, private opt: OLogger) {
 
     }
 
@@ -177,7 +187,7 @@ export class Logger {
     t(h: HLogMessage) {
         return this.trace(h);
     }
-    log(level: LogLevel, handler: HLogMessage) {
+    log(level: LogLevel, handler: HLogMessage | string, opt?: HLogMessageOpt) {
 
         let lmer = (() => {
             let lm: LogItem | null = null;
@@ -186,7 +196,21 @@ export class Logger {
                     return lm;
                 }
 
-                lm = handler((msg: string) => new LogItem(this, level, this.logname, msg));
+                if (typeof handler === 'function') {
+                    lm = handler((msg: string) => new LogItem(this, level, this.logname, msg));
+                    return lm;
+                }
+
+                lm = new LogItem(this, level, this.logname, handler);
+                if (opt?.attrs) {
+                    lm.attr(opt.attrs)
+                }
+                if (opt?.errors) {
+                    lm.exeption(...opt.errors)
+                }
+                if (opt?.tags) {
+                    lm.tag(...opt.tags)
+                }
                 return lm;
             }
         })();
@@ -196,21 +220,15 @@ export class Logger {
         if (can) {
             this.writer(lmer().data)
         }
-
-        let track = this.tracker;
-        if (track && level <= track.lowLevel) {
-            this.trackWriter(lmer().data, track.wnames)
-        }
     }
 
 
 
     child(logname: string, opt?: OLogFactory) {
-        return new Logger(`${this.logname}.${logname}`, this.canLog, this.writer, this.trackWriter, {
+        return new Logger(`${this.logname}.${logname}`, this.canLog, this.writer, {
             parent: this,
             attr: opt?.attr,
             tags: opt?.tags,
-            tracker: opt?.tracker,
         })
     }
 
@@ -230,7 +248,5 @@ export class Logger {
         }
         return this.opt.attr;
     }
-    get tracker() {
-        return this.opt.tracker
-    }
+    
 }

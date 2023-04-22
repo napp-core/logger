@@ -1,15 +1,14 @@
-import { ILogItem, ILogAttr, OLogFactory, ILogMessage } from "./common";
+import { ILogItem, ILogAttr, OLogFactory } from "./common";
 import { LogLevel, LogColor } from "./level";
-import { LogTracker } from "./track";
+
 import { Logger } from "./logger";
 import { factoryLogManager, sampleLogWriter, parseLogLevel } from "./manager";
 
 export const LogManager = factoryLogManager();
 
 export {
-    ILogItem, ILogAttr, OLogFactory, ILogMessage,
+    ILogItem, ILogAttr, OLogFactory, 
     LogLevel, LogColor,
-    LogTracker,
     Logger,
     factoryLogManager, sampleLogWriter, parseLogLevel
 }
@@ -18,7 +17,6 @@ export function getLogger(logname: string, opt?: OLogFactory) {
     return LogManager.factoryLogger(logname, {
         attr: opt?.attr,
         tags: opt?.tags,
-        tracker: opt?.tracker,
     })
 }
 

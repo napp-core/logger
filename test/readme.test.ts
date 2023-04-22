@@ -1,4 +1,4 @@
-import getLogger, { LogLevel, LogManager, LogTracker, sampleLogWriter } from "../src";
+import getLogger, { LogLevel, LogManager, sampleLogWriter } from "../src";
 
 
 function logConfig() {
@@ -82,58 +82,3 @@ module sampleUsage {
 }
 
 
-module logTrackSample {
-
-    namespace db {
-        const logger = getLogger('db');
-
-        export function fun1(tracker: LogTracker) {
-            const log = logger.child('fun1', { tracker });
-            log.info(m => m('call fun1'))
-
-            // ...
-        }
-
-        export function fun2(tracker: LogTracker) {
-            const log = logger.child('fun2', { tracker });
-            log.info(m => m('call fun2'))
-
-            // ...
-        }
-    }
-
-    namespace helper {
-        const logger = getLogger('helper');
-
-        export function fn1(tracker: LogTracker) {
-
-            logger.info(m => m('call fn1').tag('fun1'))
-            db.fun1(tracker);
-            // ...
-        }
-
-        export function fn2(tracker: LogTracker) {
-            const log = logger.child('fun2', { tracker });
-            log.info(m => m('call fn2'))
-            db.fun1(tracker);
-            // ...
-        }
-    }
-
-
-    namespace http {
-        const logger = getLogger('http');
-
-        export function route1(req: any) {
-
-
-            const tracker = LogTracker.create(LogLevel.debug, 'debug')
-            const log = logger.child('route1', { tracker })
-
-            log.info(m => m('called route1'))
-            helper.fn1(tracker);
-            // ...
-        }
-
-    }
-}

@@ -3,7 +3,7 @@ import { LogLevel } from "./level";
 import { Logger } from "./logger";
 
 import { ILogItem, OLogFactory } from "./common";
-import { ILogTrackWriter, ILogWriter, ILogWriterItem } from "./writer";
+import { ILogWriter, ILogWriterItem } from "./writer";
 import { LogTree } from "./tree";
 
 
@@ -83,15 +83,7 @@ export function factoryLogManager() {
             }
         }
     }
-    const trackWrite: ILogTrackWriter = (l, wnames) => {
-        for (let n of wnames) {
-            let w = writers.get(n.wname);
-            if (w && l.level <= n.level) {
-                w.writer(l)
-            }
-        }
-    }
-
+    
     const addWriter = (witem: ILogWriterItem) => {
 
         let wname = witem.wname || uuid();
@@ -130,12 +122,10 @@ export function factoryLogManager() {
         factoryLogger: (logname: string, opt?: OLogFactory) => {
             return new Logger(logname,
                 (l) => tree.needRunning(logname, l),
-                (l) => write(l),
-                (l, names) => trackWrite(l, names),
+                (l) => write(l),                
                 {
                     attr: opt?.attr,
                     tags: opt?.tags,
-                    tracker: opt?.tracker
                 })
         },
         logTreeObject : ()=>tree.toObject()
