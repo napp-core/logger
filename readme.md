@@ -27,7 +27,8 @@ fatal, error, warn, info, debug, trace
 ``` typescript
 
 const logger = getLogger('userlog');
-logger.debug(m => m('basic log message'))
+logger.info(m => m('basic log message'))
+logger.info('basic log message')
 
 
 ...
@@ -98,7 +99,9 @@ function logConfig() {
 namespace db {
         const log = getLogger('db');
         export function createUser() {
-            log.debug(m => m('log message'))
+            log.info(m => m('log message'))
+            log.info('log message')
+            
 
             // ...
 
@@ -145,14 +148,6 @@ namespace db {
         }
 
     }
-
-```
-
-
-# log track
-
-``` typescript
-...
 
 ```
 
