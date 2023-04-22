@@ -367,13 +367,7 @@ class TestLognameTree {
         )
 
 
-        assert.deepEqual(
-            [
-
-            ].sort(),
-            tree.needWriters('a.none', LogLevel.trace).map(it => it.wname).sort(),
-            'a.none'
-        )
+        
 
         assert.deepEqual(
             [
@@ -448,13 +442,7 @@ class TestLognameTree {
             'a.b.c.none level.fatal'
         )
 
-        assert.deepEqual(
-            [
-
-            ].sort(),
-            tree.needWriters('a.b.c.e', LogLevel.trace).map(it => it.wname).sort(),
-            'a.b.c.e level.trace'
-        )
+        
         assert.deepEqual(
             [
                 'w2'

@@ -37,6 +37,21 @@ class BasicTest {
         )
     }
 
+    @test
+    hi1Log() {
+
+        let log = this.LogManager.factoryLogger('test');
+
+        log.i('hi1 log');
+
+        assert.deepEqual(
+            [
+                'hi1 log'
+            ].sort(),
+            this.buffer.map(l => l.message()).sort(),
+        )
+    }
+
 
 
     @test

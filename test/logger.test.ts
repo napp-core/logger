@@ -58,28 +58,28 @@ class TestLogger {
 
 
 
-        logger0.t(m => m('t0'))
+        
         logger0.d(m => m('d0'))
         logger0.i(m => m('i0'))
         logger0.w(m => m('w0'))
         logger0.e(m => m('e0'))
         logger0.f(m => m('f0'))
 
-        logger1.t(m => m('t1'))
+        
         logger1.d(m => m('d1'))
         logger1.i(m => m('i1'))
         logger1.w(m => m('w1'))
         logger1.e(m => m('e1'))
         logger1.f(m => m('f1'))
 
-        logger2.t(m => m('t2'))
+        
         logger2.d(m => m('d2'))
         logger2.i(m => m('i2'))
         logger2.w(m => m('w2'))
         logger2.e(m => m('e2'))
         logger2.f(m => m('f2'))
 
-        logger3.t(m => m('t3'))
+        
         logger3.d(m => m('d3'))
         logger3.i(m => m('i3'))
         logger3.w(m => m('w3'))
@@ -118,7 +118,7 @@ class TestLogger {
 
         LogManager.removeWriter('w2')
 
-        logger2.t(m => m('t2'))
+        
         logger2.d(m => m('d2'))
         logger2.i(m => m('i2'))
         logger2.w(m => m('w2'))
@@ -190,21 +190,21 @@ class TestLogger {
 
         // console.log(JSON.stringify(LogManager.logTreeObject(), undefined, 4))
 
-        logger0.t(m => m('t0'))
+        
         logger0.d(m => m('d0'))
         logger0.i(m => m('i0'))
         logger0.w(m => m('w0'))
         logger0.e(m => m('e0'))
         logger0.f(m => m('f0'))
 
-        logger1.t(m => m('t1'))
+        
         logger1.d(m => m('d1'))
         logger1.i(m => m('i1'))
         logger1.w(m => m('w1'))
         logger1.e(m => m('e1'))
         logger1.f(m => m('f1'))
 
-        logger2.t(m => m('t2'))
+        
         logger2.d(m => m('d2'))
         logger2.i(m => m('i2'))
         logger2.w(m => m('w2'))

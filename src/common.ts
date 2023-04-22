@@ -5,16 +5,16 @@ export interface ILogAttr {
     [k: string]: Object
 }
 
-// export type ILogMessage = string | { (l: ILogItem): string };
-
-
 
 export interface ILogItem {
     timestamp: number;
     level: LogLevel;
     logname: string;
+
+
     message: () => string;
 
+    tracing: () => string | undefined;
     attrs: () => ILogAttr | undefined
     tags: () => string[] | undefined;
     //attr?: ILogAttr;

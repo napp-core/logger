@@ -13,25 +13,25 @@ export function sampleLogWriter(): ILogWriter {
 
         console.log('')
         console.log('------------------------------------------------------------------------------------')
-        console.log(`[${new Date(l.timestamp).toLocaleString()}] [${LogLevel[l.level]}] [${l.logname}]`, (l.tags() || []).map(it => '#' + it).join(', ') || '')
+        console.log(`[${new Date(l.timestamp).toLocaleString()}] [${LogLevel[l.level]}] [${l.logname}]`, (l.tags() || []).map(it => '#' + it).join(', ') || '', l.tracing() || '')
         console.log(l.message())
         console.log('');
         let attr = l.attrs();
         try {
-            attr && console.log('attr:', JSON.stringify(attr));    
+            attr && console.log('attr:', JSON.stringify(attr));
         } catch (error) {
             console.log('sampleLogWriter attr print error');
             console.log(error);
-            console.log('attr:',attr);
+            console.log('attr:', attr);
         }
 
-        let errs = l.errors() ;
+        let errs = l.errors();
         try {
-            errs && errs.length && console.log(errs.map(e => console.error(e)))    
+            errs && errs.length && console.log(errs.map(e => console.error(e)))
         } catch (error) {
             console.log('sampleLogWriter error print error');
             console.log(error);
-            console.log('error:',errs);
+            console.log('error:', errs);
         }
     }
 }
@@ -83,7 +83,7 @@ export function factoryLogManager() {
             }
         }
     }
-    
+
     const addWriter = (witem: ILogWriterItem) => {
 
         let wname = witem.wname || uuid();
@@ -117,17 +117,17 @@ export function factoryLogManager() {
          * @returns witem remove function
          */
         addWriter: (witem: ILogWriterItem) => addWriter(witem),
-        
+
         removeWriter: (name: string) => removeWriter(name),
         factoryLogger: (logname: string, opt?: OLogFactory) => {
             return new Logger(logname,
                 (l) => tree.needRunning(logname, l),
-                (l) => write(l),                
+                (l) => write(l),
                 {
                     attr: opt?.attr,
                     tags: opt?.tags,
                 })
         },
-        logTreeObject : ()=>tree.toObject()
+        logTreeObject: () => tree.toObject()
     }
 }

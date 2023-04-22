@@ -15,9 +15,11 @@ interface HLogMessage {
 
 }
 interface HLogMessageOpt {
+
+    tracing?: string;
     attrs?: ILogAttr
     tags?: string[]
-    //attr?: ILogAttr;
+
     errors?: Error[];
 
 
@@ -32,6 +34,7 @@ class LogItem {
 
 
     private timestamp = Date.now();
+    private _tracing?: string;
     private _attr?: ILogAttr;
     private _tags?: string[];
     private _errors?: Error[];
@@ -41,6 +44,10 @@ class LogItem {
 
     attr(p: { [k: string]: Object }) {
         this._attr = { ...(this._attr || {}), ...p };
+        return this;
+    }
+    tracing(id: string) {
+        this._tracing = id;
         return this;
     }
 
@@ -54,7 +61,7 @@ class LogItem {
         return this;
     }
 
-    get data(): ILogItem {
+    getData(): ILogItem {
 
 
         return {
@@ -62,6 +69,7 @@ class LogItem {
             level: this.level,
             logname: this.logname,
             message: () => this.message,
+            tracing: () => this._tracing,
             attrs: () => {
                 let lattr = this.logger.attr;
                 let mattr = this._attr;
@@ -96,25 +104,23 @@ export class Logger {
 
     }
 
-    fatal(h: HLogMessage) {
-        return this.log(LogLevel.fatal, h);
+    fatal(h: HLogMessage | string, opt?: HLogMessageOpt) {
+        return this.log(LogLevel.fatal, h, opt);
     }
 
-    error(h: HLogMessage) {
-        return this.log(LogLevel.error, h);
+    error(h: HLogMessage | string, opt?: HLogMessageOpt) {
+        return this.log(LogLevel.error, h, opt);
     }
-    warn(h: HLogMessage) {
-        return this.log(LogLevel.warn, h);
+    warn(h: HLogMessage | string, opt?: HLogMessageOpt) {
+        return this.log(LogLevel.warn, h, opt);
     }
-    info(h: HLogMessage) {
-        return this.log(LogLevel.info, h);
+    info(h: HLogMessage | string, opt?: HLogMessageOpt) {
+        return this.log(LogLevel.info, h, opt);
     }
-    debug(h: HLogMessage) {
-        return this.log(LogLevel.debug, h);
+    debug(h: HLogMessage | string, opt?: HLogMessageOpt) {
+        return this.log(LogLevel.debug, h, opt);
     }
-    trace(h: HLogMessage) {
-        return this.log(LogLevel.trace, h);
-    }
+    
 
     action<T>(actionName: string, message: string, handle: () => T, opt?: {
 
@@ -127,7 +133,7 @@ export class Logger {
         attr?: ILogAttr
     }) {
         try {
-            this.log(opt?.level?.request || LogLevel.trace, msg => {
+            this.log(opt?.level?.request || LogLevel.debug, msg => {
                 let m = msg(message);
                 if (opt?.attr) {
                     m.attr(opt?.attr)
@@ -169,56 +175,47 @@ export class Logger {
         }
     }
 
-    f(h: HLogMessage) {
-        return this.fatal(h);
+    f(h: HLogMessage | string, opt?: HLogMessageOpt) {
+        return this.fatal(h, opt);
     }
-    e(h: HLogMessage) {
-        return this.error(h);
+    e(h: HLogMessage | string, opt?: HLogMessageOpt) {
+        return this.error(h, opt);
     }
-    w(h: HLogMessage) {
-        return this.warn(h);
+    w(h: HLogMessage | string, opt?: HLogMessageOpt) {
+        return this.warn(h, opt);
     }
-    i(h: HLogMessage) {
-        return this.info(h);
+    i(h: HLogMessage | string, opt?: HLogMessageOpt) {
+        return this.info(h, opt);
     }
-    d(h: HLogMessage) {
-        return this.debug(h);
+    d(h: HLogMessage | string, opt?: HLogMessageOpt) {
+        return this.debug(h, opt);
     }
-    t(h: HLogMessage) {
-        return this.trace(h);
-    }
+  
     log(level: LogLevel, handler: HLogMessage | string, opt?: HLogMessageOpt) {
-
-        let lmer = (() => {
-            let lm: LogItem | null = null;
-            return () => {
-                if (lm) {
-                    return lm;
-                }
-
-                if (typeof handler === 'function') {
-                    lm = handler((msg: string) => new LogItem(this, level, this.logname, msg));
-                    return lm;
-                }
-
-                lm = new LogItem(this, level, this.logname, handler);
-                if (opt?.attrs) {
-                    lm.attr(opt.attrs)
-                }
-                if (opt?.errors) {
-                    lm.exeption(...opt.errors)
-                }
-                if (opt?.tags) {
-                    lm.tag(...opt.tags)
-                }
-                return lm;
-            }
-        })();
 
         let can = this.canLog(level);
 
         if (can) {
-            this.writer(lmer().data)
+            if (typeof handler === 'function') {
+                let item = handler((msg: string) => new LogItem(this, level, this.logname, msg));
+                return this.writer(item.getData())
+            }
+
+            let item = new LogItem(this, level, this.logname, handler);
+            if (opt?.tracing) {
+                item.tracing(opt.tracing)
+            }
+            if (opt?.attrs) {
+                item.attr(opt.attrs)
+            }
+            if (opt?.errors) {
+                item.exeption(...opt.errors)
+            }
+            if (opt?.tags) {
+                item.tag(...opt.tags)
+            }
+
+            return this.writer(item.getData())
         }
     }
 
@@ -248,5 +245,5 @@ export class Logger {
         }
         return this.opt.attr;
     }
-    
+
 }
