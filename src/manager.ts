@@ -13,10 +13,10 @@ export function sampleLogWriter(): ILogWriter {
 
         console.log('')
         console.log('------------------------------------------------------------------------------------')
-        console.log(`[${new Date(l.timestamp).toLocaleString()}] [${LogLevel[l.level]}] [${l.logname}]`, (l.tags() || []).map(it => '#' + it).join(', ') || '', l.tracing() || '')
-        console.log(l.message())
+        console.log(`[${new Date(l.timestamp).toLocaleString()}] [${LogLevel[l.level]}] [${l.logname}]`, (l.tags || []).map(it => '#' + it).join(', ') || '', l.track || '')
+        console.log(l.message)
         console.log('');
-        let attr = l.attrs();
+        let attr = l.attrs;
         try {
             attr && console.log('attr:', JSON.stringify(attr));
         } catch (error) {
@@ -25,7 +25,7 @@ export function sampleLogWriter(): ILogWriter {
             console.log('attr:', attr);
         }
 
-        let errs = l.errors();
+        let errs = l.errors;
         try {
             errs && errs.length && console.log(errs.map(e => console.error(e)))
         } catch (error) {
@@ -52,8 +52,14 @@ export function parseLogLevel(level: string) {
         if (['d', 'debug', 'trace'].indexOf(l) > -1) {
             return LogLevel.debug;
         }
-        if (['e', 'error', 'critical', 'fatal'].indexOf(l) > -1) {
+        if (['t', 'trace'].indexOf(l) > -1) {
+            return LogLevel.trace;
+        }
+        if (['e', 'error'].indexOf(l) > -1) {
             return LogLevel.error;
+        }
+        if (['f', 'critical', 'fatal'].indexOf(l) > -1) {
+            return LogLevel.fatal;
         }
 
         console.warn('cannot parse LoggerLevel from ', level)

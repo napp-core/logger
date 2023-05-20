@@ -1,9 +1,12 @@
+import { trace } from "console";
+
 export enum LogLevel {
     fatal = 0,
     error = 10,
     warn = 20,
     info = 30,
-    debug = 40
+    debug = 40,
+    trace = 50
 }
 
 
@@ -38,5 +41,6 @@ export const LogColor = {
     [LogLevel.error]: 'red',
     [LogLevel.warn]: 'yellow',
     [LogLevel.info]: 'green',
-    [LogLevel.debug]: 'cyan'
+    [LogLevel.debug]: 'cyan',
+    [LogLevel.trace]: 'magenta'
 };

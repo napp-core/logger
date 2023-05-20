@@ -32,7 +32,7 @@ module sampleUsage {
     namespace db {
         const log = getLogger('db');
         export function createUser() {
-            log.debug(m => m('log message'))
+            log.debug(('log message'))
 
             // ...
 
@@ -42,7 +42,7 @@ module sampleUsage {
         }
 
         export function deleteUser() {
-            log.debug(m => m('log message'))
+            log.debug(('log message'))
 
             // ...
 

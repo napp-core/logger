@@ -8,7 +8,7 @@ javascript minimum resources usage logger library.
 
 - minimum resources
 - saved preformice
-- log tracking
+- log track
 - user friendly
 - powerfull logger library
 - support browser
@@ -27,9 +27,10 @@ fatal, error, warn, info, debug, trace
 ``` typescript
 
 const logger = getLogger('userlog');
-logger.info(m => m('basic log message'))
 logger.info('basic log message')
-
+logger.infoFn(e => {
+    e.message = 'basic log message'
+})
 
 ...
 
@@ -37,18 +38,17 @@ logger.info('basic log message')
 try {
     //...
 } catch (error) {
-    logger.error(m=>m('error log message').exeption(error))
+    logger.error('error log message', e=>e.errors[error])
 }
 
 
 ...
 
 
-logger.error(m => {
-    return m('error log message')
-        .attr({ a: 'foo', b: 'baa' })
-        .tag('tag1')
-        .tag('tag2', 'tag3')
+logger.errorFn(e => {
+    e.msg ='error log message'
+    e.attr({ a: 'foo', b: 'baa' })
+    e.tag('tag1','tag2').tag('tag3')
 })
 
 
@@ -99,7 +99,6 @@ function logConfig() {
 namespace db {
         const log = getLogger('db');
         export function createUser() {
-            log.info(m => m('log message'))
             log.info('log message')
             
 
@@ -111,7 +110,7 @@ namespace db {
         }
 
         export function deleteUser() {
-            log.debug(m => m('log message'))
+            log.debug('log message')
 
             // ...
 

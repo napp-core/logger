@@ -27,13 +27,13 @@ class BasicTest {
 
         let log = this.LogManager.factoryLogger('test');
 
-        log.i(m => m('hi log'));
+        log.infoFn(e => e.message = 'hi log');
 
         assert.deepEqual(
             [
                 'hi log'
             ].sort(),
-            this.buffer.map(l => l.message()).sort(),
+            this.buffer.map(l => l.message).sort(),
         )
     }
 
@@ -48,7 +48,7 @@ class BasicTest {
             [
                 'hi1 log'
             ].sort(),
-            this.buffer.map(l => l.message()).sort(),
+            this.buffer.map(l => l.message).sort(),
         )
     }
 
@@ -59,11 +59,11 @@ class BasicTest {
 
         let log = this.LogManager.factoryLogger('test');
 
-        log.i((m) => m('log attr').attr({ a: 'aa', b: 'bbb' }));
+        log.i('log attr', e => e.attrs = { a: 'aa', b: 'bbb' });
 
         assert.deepEqual(
             [{ a: 'aa', b: 'bbb' }],
-            this.buffer.map(l => l.attrs() || {}),
+            this.buffer.map(l => l.attrs || {}),
         )
     }
 
@@ -74,14 +74,14 @@ class BasicTest {
         try {
             throw new Error('check error')
         } catch (error) {
-            log.e((m) => m('error message').exeption(error as any));
+            log.e(('error message'), e => e.errors = [error]);
         }
 
 
 
         assert.deepEqual(
             [['check error']],
-            this.buffer.map(l => (l.errors() || []).map(e => e.message)),
+            this.buffer.map(l => (l.errors || []).map(e => e.message)),
         )
     }
 
@@ -90,11 +90,11 @@ class BasicTest {
 
         let log = this.LogManager.factoryLogger('test');
 
-        log.i((m) => m('log attr').tag('t1', 't2').tag('t3'));
+        log.i(('log attr'), e => e.tags = ['t1', 't2', 't3']);
 
         assert.deepEqual(
             [['t1', 't2', 't3']],
-            this.buffer.map(l => l.tags() || []),
+            this.buffer.map(l => l.tags || []),
         )
     }
 
@@ -105,14 +105,14 @@ class BasicTest {
             attr: { a: 22, b: 33 }
         });
 
-        log.i((m) => m('log attr').attr({ a: 44, e: 55 }));
+        log.i(('log attr'), e => e.attrs = ({ a: 44, e: 55 }));
 
 
 
         assert.deepEqual(
             [{ a: 44, b: 33, e: 55 }],
             this.buffer.map(l => {
-                return l.attrs() || {}
+                return l.attrs || {}
             }),
         )
     }
@@ -123,14 +123,14 @@ class BasicTest {
             tags: ['ltag']
         });
 
-        log.i((m) => m('log attr').tag('mtag'));
+        log.i(('log attr'), e => e.tags = ['mtag']);
 
 
 
         assert.deepEqual(
             [['ltag', 'mtag']],
             this.buffer.map(l => {
-                return l.tags() || []
+                return l.tags || []
             }),
         )
     }
@@ -141,14 +141,14 @@ class BasicTest {
             tags: ['ltag', 'ta']
         });
 
-        log.i((m) => m('log attr').tag('mtag', 'ta'));
+        log.i(('log attr'), e => e.tags = ['mtag', 'ta']);
 
 
 
         assert.deepEqual(
             [['ltag', 'mtag', 'ta'].sort()],
             this.buffer.map(l => {
-                return (l.tags() || []).sort()
+                return (l.tags || []).sort()
             }),
         )
     }
@@ -166,18 +166,19 @@ class BasicTest {
         });
 
 
-        log.i((m) => m('child log')
-            .attr({ a: 66, b: 77, c: 88 })
-            .tag('t1', 't2').tag('t3'));
+        log.i(('child log'), e => {
+            e.attrs = ({ a: 66, b: 77, c: 88 })
+            e.tags = ['t1', 't2', 't3']
+        });
 
         assert.deepEqual(
             [['t1', 't2', 't3', 'ctag', 'ptag'].sort()],
-            this.buffer.map(l => (l.tags() || []).sort()),
+            this.buffer.map(l => (l.tags || []).sort()),
         )
 
         assert.deepEqual(
             [{ pattr: 'pattr', cattr: 'cattr', a: 66, b: 77, c: 88 }],
-            this.buffer.map(l => (l.attrs() || {})),
+            this.buffer.map(l => (l.attrs || {})),
         )
     }
 

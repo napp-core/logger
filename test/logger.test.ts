@@ -26,13 +26,13 @@ class TestLogger {
         let buffer2: string[] = []
 
         let writer0 = (m: ILogItem) => {
-            buffer0.push(m.message() || '')
+            buffer0.push(m.message || '')
         }
         let writer1 = (m: ILogItem) => {
-            buffer1.push(m.message() || '')
+            buffer1.push(m.message || '')
         }
         let writer2 = (m: ILogItem) => {
-            buffer2.push(m.message() || '')
+            buffer2.push(m.message || '')
         }
 
         LogManager.addWriter({
@@ -59,32 +59,32 @@ class TestLogger {
 
 
         
-        logger0.d(m => m('d0'))
-        logger0.i(m => m('i0'))
-        logger0.w(m => m('w0'))
-        logger0.e(m => m('e0'))
-        logger0.f(m => m('f0'))
+        logger0.d(('d0'))
+        logger0.i(('i0'))
+        logger0.w(('w0'))
+        logger0.e(('e0'))
+        logger0.f(('f0'))
 
         
-        logger1.d(m => m('d1'))
-        logger1.i(m => m('i1'))
-        logger1.w(m => m('w1'))
-        logger1.e(m => m('e1'))
-        logger1.f(m => m('f1'))
+        logger1.d(('d1'))
+        logger1.i(('i1'))
+        logger1.w(('w1'))
+        logger1.e(('e1'))
+        logger1.f(('f1'))
 
         
-        logger2.d(m => m('d2'))
-        logger2.i(m => m('i2'))
-        logger2.w(m => m('w2'))
-        logger2.e(m => m('e2'))
-        logger2.f(m => m('f2'))
+        logger2.d(('d2'))
+        logger2.i(('i2'))
+        logger2.w(('w2'))
+        logger2.e(('e2'))
+        logger2.f(('f2'))
 
         
-        logger3.d(m => m('d3'))
-        logger3.i(m => m('i3'))
-        logger3.w(m => m('w3'))
-        logger3.e(m => m('e3'))
-        logger3.f(m => m('f3'))
+        logger3.d(('d3'))
+        logger3.i(('i3'))
+        logger3.w(('w3'))
+        logger3.e(('e3'))
+        logger3.f(('f3'))
 
 
 
@@ -119,11 +119,11 @@ class TestLogger {
         LogManager.removeWriter('w2')
 
         
-        logger2.d(m => m('d2'))
-        logger2.i(m => m('i2'))
-        logger2.w(m => m('w2'))
-        logger2.e(m => m('e2'))
-        logger2.f(m => m('f2'))
+        logger2.d(('d2'))
+        logger2.i(('i2'))
+        logger2.w(('w2'))
+        logger2.e(('e2'))
+        logger2.f(('f2'))
 
         assert.deepEqual(           
             [
@@ -163,13 +163,13 @@ class TestLogger {
         let buffer2: string[] = []
 
         let writer0 = (m: ILogItem) => {
-            buffer0.push(m.message() || '')
+            buffer0.push(m.message || '')
         }
         let writer1 = (m: ILogItem) => {
-            buffer1.push(m.message() || '')
+            buffer1.push(m.message || '')
         }
         let writer2 = (m: ILogItem) => {
-            buffer2.push(m.message() || '')
+            buffer2.push(m.message || '')
         }
 
 
@@ -191,25 +191,25 @@ class TestLogger {
         // console.log(JSON.stringify(LogManager.logTreeObject(), undefined, 4))
 
         
-        logger0.d(m => m('d0'))
-        logger0.i(m => m('i0'))
-        logger0.w(m => m('w0'))
-        logger0.e(m => m('e0'))
-        logger0.f(m => m('f0'))
+        logger0.d(('d0'))
+        logger0.i(('i0'))
+        logger0.w(('w0'))
+        logger0.e(('e0'))
+        logger0.f(('f0'))
 
         
-        logger1.d(m => m('d1'))
-        logger1.i(m => m('i1'))
-        logger1.w(m => m('w1'))
-        logger1.e(m => m('e1'))
-        logger1.f(m => m('f1'))
+        logger1.d(('d1'))
+        logger1.i(('i1'))
+        logger1.w(('w1'))
+        logger1.e(('e1'))
+        logger1.f(('f1'))
 
         
-        logger2.d(m => m('d2'))
-        logger2.i(m => m('i2'))
-        logger2.w(m => m('w2'))
-        logger2.e(m => m('e2'))
-        logger2.f(m => m('f2'))
+        logger2.d(('d2'))
+        logger2.i(('i2'))
+        logger2.w(('w2'))
+        logger2.e(('e2'))
+        logger2.f(('f2'))
 
 
         assert.deepEqual(

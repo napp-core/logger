@@ -9,93 +9,67 @@ interface ICanLog {
 }
 
 
-interface HLogMessage {
-    (l: (msg: string) => LogItem): LogItem
+
+class LogItemerParam {
+    message?: string;
 
 
-}
-interface HLogMessageOpt {
-
-    tracing?: string;
+    track?: string;
     attrs?: ILogAttr
     tags?: string[]
+    errors?: any[];
 
-    errors?: Error[];
+    tag(...tags: string[]) {
+        this.tags = [... new Set<string>([...(this.tags || []), ...tags])]
+        return this;
+    }
+    error(...errors: any[]) {
+        this.errors = [...(this.errors || []), ...errors]
+        return this;
+    }
+    exeption(...errors: any[]) {
+        this.error(errors)
+        return this;
+    }
+    attr(attr: ILogAttr) {
+        this.attrs = {
+            ... (this.attrs || {}),
+            ...attr
+        }
+        return this;
+    }
 
+    setTrack(track: string) {
+        this.track = track;
+        return this
+    }
 
+    setMessage(msg: string) {
+        this.message = msg;
+        return this;
+    }
 }
+
+
+
+
+
+interface LogParamEx {
+    (e: LogItemerParam): void
+}
+
+
+
+
+
+
 interface OLogger extends OLogFactory {
 
     parent?: Logger;
 }
 
 
-class LogItem {
 
-
-    private timestamp = Date.now();
-    private _tracing?: string;
-    private _attr?: ILogAttr;
-    private _tags?: string[];
-    private _errors?: Error[];
-
-    constructor(private logger: Logger, private level: LogLevel, private logname: string, private message: string) {
-    }
-
-    attr(p: { [k: string]: Object }) {
-        this._attr = { ...(this._attr || {}), ...p };
-        return this;
-    }
-    tracing(id: string) {
-        this._tracing = id;
-        return this;
-    }
-
-    exeption(...err: Error[]) {
-        this._errors = [...(this._errors || []), ...err]
-        return this;
-    }
-
-    tag(...tags: string[]) {
-        this._tags = [...(this._tags || []), ...tags]
-        return this;
-    }
-
-    getData(): ILogItem {
-
-
-        return {
-            timestamp: this.timestamp,
-            level: this.level,
-            logname: this.logname,
-            message: () => this.message,
-            tracing: () => this._tracing,
-            attrs: () => {
-                let lattr = this.logger.attr;
-                let mattr = this._attr;
-                if (mattr || lattr) {
-                    return { ...(lattr || {}), ...(mattr || {}) }
-                }
-
-                return undefined;
-            },
-            tags: () => {
-                let ltags = this.logger.tags;
-                let mtags = this._tags;
-
-                if (ltags || mtags) {
-                    let tags = [...(ltags || []), ...(mtags || [])]
-                    return [...new Set<string>(tags)]
-                }
-                return undefined;
-            },
-            errors: () => {
-                return this._errors;
-            }
-        }
-    }
-
-}
 
 export class Logger {
 
@@ -104,23 +78,43 @@ export class Logger {
 
     }
 
-    fatal(h: HLogMessage | string, opt?: HLogMessageOpt) {
-        return this.log(LogLevel.fatal, h, opt);
+    fatal(msg: string, opt?: LogParamEx) {
+        return this.log(LogLevel.fatal, msg, opt);
+    }
+    fatalFn(fn: LogParamEx) {
+        return this.logFn(LogLevel.fatal, fn);
+    }
+    error(msg: string, opt?: LogParamEx) {
+        return this.log(LogLevel.error, msg, opt);
+    }
+    errorFn(fn: LogParamEx) {
+        return this.logFn(LogLevel.error, fn);
+    }
+    warn(msg: string, opt?: LogParamEx) {
+        return this.log(LogLevel.warn, msg, opt);
+    }
+    warnFn(fn: LogParamEx) {
+        return this.logFn(LogLevel.warn, fn);
+    }
+    info(msg: string, opt?: LogParamEx) {
+        return this.log(LogLevel.info, msg, opt);
+    }
+    infoFn(fn: LogParamEx) {
+        return this.logFn(LogLevel.info, fn);
+    }
+    debug(msg: string, opt?: LogParamEx) {
+        return this.log(LogLevel.debug, msg, opt);
+    }
+    debugFn(fn: LogParamEx) {
+        return this.logFn(LogLevel.debug, fn);
+    }
+    trace(msg: string, opt?: LogParamEx) {
+        return this.log(LogLevel.trace, msg, opt);
+    }
+    traceFn(fn: LogParamEx) {
+        return this.logFn(LogLevel.trace, fn);
     }
 
-    error(h: HLogMessage | string, opt?: HLogMessageOpt) {
-        return this.log(LogLevel.error, h, opt);
-    }
-    warn(h: HLogMessage | string, opt?: HLogMessageOpt) {
-        return this.log(LogLevel.warn, h, opt);
-    }
-    info(h: HLogMessage | string, opt?: HLogMessageOpt) {
-        return this.log(LogLevel.info, h, opt);
-    }
-    debug(h: HLogMessage | string, opt?: HLogMessageOpt) {
-        return this.log(LogLevel.debug, h, opt);
-    }
-    
 
     action<T>(actionName: string, message: string, handle: () => T, opt?: {
 
@@ -133,89 +127,101 @@ export class Logger {
         attr?: ILogAttr
     }) {
         try {
-            this.log(opt?.level?.request || LogLevel.debug, msg => {
-                let m = msg(message);
-                if (opt?.attr) {
-                    m.attr(opt?.attr)
-                }
+            this.logFn(opt?.level?.request || LogLevel.debug, e => {
+                e.message = message;
+                e.attrs = opt?.attr;
                 if (opt?.tags) {
-                    m.tag(...opt?.tags)
+                    e.tag(...opt.tags)
                 }
-                return m.tag(`${actionName}.request`)
+                e.tag(`${actionName}.request`);
             })
             let r: T = handle()
 
-            this.log(opt?.level?.success || LogLevel.info, msg => {
-                let m = msg(message);
-                if (opt?.attr) {
-                    m.attr(opt?.attr)
-                }
+            this.logFn(opt?.level?.success || LogLevel.info, e => {
+                e.message = message;
+                e.attrs = opt?.attr;
                 if (opt?.tags) {
-                    m.tag(...opt?.tags)
+                    e.tag(...opt.tags)
                 }
-                return m.tag(`${actionName}.success`)
+                e.tag(`${actionName}.success`);
             })
 
             return r;
         } catch (error) {
-            this.log(opt?.level?.fail || LogLevel.error, msg => {
-                let m = msg(message);
-                if (error instanceof Error) {
-                    m.exeption(error)
-                }
-                if (opt?.attr) {
-                    m.attr(opt?.attr)
-                }
+            this.logFn(opt?.level?.fail || LogLevel.error, e => {
+                e.message = message;
+                e.attrs = opt?.attr;
+                e.tag(`${actionName}.fail`);
                 if (opt?.tags) {
-                    m.tag(...opt?.tags)
+                    e.tag(...opt.tags)
                 }
-                return m.tag(`${actionName}.fail`)
+                if (error instanceof Error) {
+                    e.errors = [error]
+                }
             })
             throw error;
         }
     }
 
-    f(h: HLogMessage | string, opt?: HLogMessageOpt) {
-        return this.fatal(h, opt);
+    f(msg: string, opt?: LogParamEx) {
+        return this.fatal(msg, opt);
     }
-    e(h: HLogMessage | string, opt?: HLogMessageOpt) {
-        return this.error(h, opt);
+    e(msg: string, opt?: LogParamEx) {
+        return this.error(msg, opt);
     }
-    w(h: HLogMessage | string, opt?: HLogMessageOpt) {
-        return this.warn(h, opt);
+    w(msg: string, opt?: LogParamEx) {
+        return this.warn(msg, opt);
     }
-    i(h: HLogMessage | string, opt?: HLogMessageOpt) {
-        return this.info(h, opt);
+    i(msg: string, opt?: LogParamEx) {
+        return this.info(msg, opt);
     }
-    d(h: HLogMessage | string, opt?: HLogMessageOpt) {
-        return this.debug(h, opt);
+    d(msg: string, opt?: LogParamEx) {
+        return this.debug(msg, opt);
     }
-  
-    log(level: LogLevel, handler: HLogMessage | string, opt?: HLogMessageOpt) {
+    t(msg: string, opt?: LogParamEx) {
+        return this.trace(msg, opt);
+    }
 
+    log(level: LogLevel, message: string, opt?: LogParamEx) {
         let can = this.canLog(level);
-
         if (can) {
-            if (typeof handler === 'function') {
-                let item = handler((msg: string) => new LogItem(this, level, this.logname, msg));
-                return this.writer(item.getData())
+            let p = new LogItemerParam().setMessage(message)
+            if (opt) {
+                opt(p)
             }
 
-            let item = new LogItem(this, level, this.logname, handler);
-            if (opt?.tracing) {
-                item.tracing(opt.tracing)
-            }
-            if (opt?.attrs) {
-                item.attr(opt.attrs)
-            }
-            if (opt?.errors) {
-                item.exeption(...opt.errors)
-            }
-            if (opt?.tags) {
-                item.tag(...opt.tags)
-            }
+            this._log(level, p)
+        }
+    }
+    private _log(level: LogLevel, p: LogItemerParam) {
+        let log: ILogItem = {
+            timestamp: Date.now(),
+            logname: this.logname,
+            level,
+            message: p.message,
+            attrs: (p.attrs || this.attr)
+                ? { ...(this.attr || {}), ...(p.attrs || {}) }
+                : undefined,
+            errors: p.errors,
+            tags: (p.tags || this.tags)
+                ? [... new Set<string>([...(this.tags || []), ...(p.tags || [])])]
+                : undefined,
+            track: p.track
+        }
 
-            return this.writer(item.getData())
+        this.writer(log);
+
+    }
+    logFn(level: LogLevel, fn: LogParamEx) {
+        let can = this.canLog(level);
+        if (can) {
+
+            let p = new LogItemerParam()
+
+            fn(p);
+
+            this._log(level, p)
+
         }
     }
 

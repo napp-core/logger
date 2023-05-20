@@ -1,9 +1,9 @@
 import { LogLevel } from "./level";
 
 
-export interface ILogAttr {
-    [k: string]: Object
-}
+export type ILogAttrValue = string | number | boolean | Date | null | undefined | ILogAttr | ILogAttrArray;
+export interface ILogAttr { [x: string]: ILogAttrValue; }
+export interface ILogAttrArray extends Array<ILogAttrValue> { }
 
 
 export interface ILogItem {
@@ -12,13 +12,13 @@ export interface ILogItem {
     logname: string;
 
 
-    message: () => string;
+    message?: string;
 
-    tracing: () => string | undefined;
-    attrs: () => ILogAttr | undefined
-    tags: () => string[] | undefined;
-    //attr?: ILogAttr;
-    errors: () => Error[] | undefined;
+    track?: string;
+    
+    tags?: string[];
+    attrs?: ILogAttr;
+    errors?: any[];
 
 }
 
