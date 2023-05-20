@@ -1,13 +1,13 @@
 {
   "name": "@napp/logger",
-  "version": "3.1.1",
+  "version": "3.1.2",
   "description": "low level log archigture. minimum resources, user friendly, powerfull logger library. supported browser & nodejs",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "scripts": {
     "clear": "npx rimraf --glob lib/**",
     "tsc": "tsc -p tsconfig.json",
-    "prebuild": "npm version patch && npm run clear",    
+    "prebuild": "npm version patch && npm run clear",
     "build": "tsc -p tsconfig.lib.json",
     "postbuild": "ts-node build.ts > ./lib/package.json",
     "prepush": "npm run test && npm run build",
