@@ -8,7 +8,7 @@ interface ICanLog {
     (level: LogLevel): boolean
 }
 
-class LogItemerParam {
+export class LogBuilder {
     message?: string;
     track?: string;
     attrs?: ILogAttr
@@ -48,7 +48,7 @@ class LogItemerParam {
 
 
 interface LogParamEx {
-    (e: LogItemerParam): void
+    (e: LogBuilder): void
 }
 
 
@@ -178,7 +178,7 @@ export class Logger {
     log(level: LogLevel, message: string, opt?: LogParamEx) {
         let can = this.canLog(level);
         if (can) {
-            let p = new LogItemerParam().setMessage(message)
+            let p = new LogBuilder().setMessage(message)
             if (opt) {
                 opt(p)
             }
@@ -186,7 +186,7 @@ export class Logger {
             this._log(level, p)
         }
     }
-    private _log(level: LogLevel, p: LogItemerParam) {
+    private _log(level: LogLevel, p: LogBuilder) {
         let log: ILogItem = {
             timestamp: Date.now(),
             logname: this.logname,
@@ -209,7 +209,7 @@ export class Logger {
         let can = this.canLog(level);
         if (can) {
 
-            let p = new LogItemerParam()
+            let p = new LogBuilder()
 
             fn(p);
 

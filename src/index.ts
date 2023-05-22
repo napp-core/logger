@@ -1,15 +1,15 @@
 import { ILogItem, ILogAttr, OLogFactory } from "./common";
 import { LogLevel, LogColor } from "./level";
 
-import { Logger } from "./logger";
+import { Logger, LogBuilder } from "./logger";
 import { factoryLogManager, sampleLogWriter, parseLogLevel } from "./manager";
 
 export const LogManager = factoryLogManager();
 
 export {
-    ILogItem, ILogAttr, OLogFactory, 
+    ILogItem, ILogAttr, OLogFactory,
     LogLevel, LogColor,
-    Logger,
+    Logger, LogBuilder,
     factoryLogManager, sampleLogWriter, parseLogLevel
 }
 
