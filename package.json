@@ -1,6 +1,6 @@
 {
   "name": "@napp/logger",
-  "version": "3.1.2",
+  "version": "3.2.1",
   "description": "low level log archigture. minimum resources, user friendly, powerfull logger library. supported browser & nodejs",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",

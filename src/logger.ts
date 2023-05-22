@@ -8,30 +8,23 @@ interface ICanLog {
     (level: LogLevel): boolean
 }
 
-
-
 class LogItemerParam {
     message?: string;
-
-
     track?: string;
     attrs?: ILogAttr
     tags?: string[]
     errors?: any[];
 
-    tag(...tags: string[]) {
+    addTag(...tags: string[]) {
         this.tags = [... new Set<string>([...(this.tags || []), ...tags])]
         return this;
     }
-    error(...errors: any[]) {
+    addError(...errors: any[]) {
         this.errors = [...(this.errors || []), ...errors]
         return this;
     }
-    exeption(...errors: any[]) {
-        this.error(errors)
-        return this;
-    }
-    attr(attr: ILogAttr) {
+
+    setAttr(attr: ILogAttr) {
         this.attrs = {
             ... (this.attrs || {}),
             ...attr
@@ -131,9 +124,9 @@ export class Logger {
                 e.message = message;
                 e.attrs = opt?.attr;
                 if (opt?.tags) {
-                    e.tag(...opt.tags)
+                    e.addTag(...opt.tags)
                 }
-                e.tag(`${actionName}.request`);
+                e.addTag(`${actionName}.request`);
             })
             let r: T = handle()
 
@@ -141,9 +134,9 @@ export class Logger {
                 e.message = message;
                 e.attrs = opt?.attr;
                 if (opt?.tags) {
-                    e.tag(...opt.tags)
+                    e.addTag(...opt.tags)
                 }
-                e.tag(`${actionName}.success`);
+                e.addTag(`${actionName}.success`);
             })
 
             return r;
@@ -151,9 +144,9 @@ export class Logger {
             this.logFn(opt?.level?.fail || LogLevel.error, e => {
                 e.message = message;
                 e.attrs = opt?.attr;
-                e.tag(`${actionName}.fail`);
+                e.addTag(`${actionName}.fail`);
                 if (opt?.tags) {
-                    e.tag(...opt.tags)
+                    e.addTag(...opt.tags)
                 }
                 if (error instanceof Error) {
                     e.errors = [error]
