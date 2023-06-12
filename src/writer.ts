@@ -8,6 +8,7 @@ export interface ILogWriter {
 export interface ILogWriterItem {
     wname?: string;
     logname?: string
+    onRemoved?: () => void;
     level: LogLevel;
     writer: ILogWriter
 }

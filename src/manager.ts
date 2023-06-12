@@ -69,8 +69,6 @@ export function parseLogLevel(level: string) {
 
 export function factoryLogManager() {
     const writers = new Map<string, ILogWriterItem>();
-
-
     const tree = new LogTree();
 
     const uuid = (() => {
@@ -78,7 +76,6 @@ export function factoryLogManager() {
         let nx = () => id < 0xfffffff ? ++id : id = 1;
         return () => '' + Math.random().toString(36).substring(2) + nx().toString(36) + Date.now().toString(36);
     })();
-
 
     const write: ILogWriter = (l: ILogItem) => {
         let witems = tree.needWriters(l.logname, l.level);
@@ -91,7 +88,6 @@ export function factoryLogManager() {
     }
 
     const addWriter = (witem: ILogWriterItem) => {
-
         let wname = witem.wname || uuid();
         if (writers.has(wname)) {
             throw new Error('writer name daplicated')
@@ -99,7 +95,6 @@ export function factoryLogManager() {
 
         writers.set(wname, witem);
         tree.addWriter({ level: witem.level, logname: witem.logname || '', wname })
-
 
         return () => {
             removeWriter(wname);
@@ -112,10 +107,11 @@ export function factoryLogManager() {
         if (witem) {
             tree.removeWriter({ level: witem.level, logname: witem.logname || '', wname })
             writers.delete(wname);
+            if (witem.onRemoved) {
+                witem.onRemoved()
+            }
         }
     }
-
-
 
     return {
         /**
@@ -123,7 +119,6 @@ export function factoryLogManager() {
          * @returns witem remove function
          */
         addWriter: (witem: ILogWriterItem) => addWriter(witem),
-
         removeWriter: (name: string) => removeWriter(name),
         factoryLogger: (logname: string, opt?: OLogFactory) => {
             return new Logger(logname,
