@@ -107,8 +107,8 @@ export function factoryLogManager() {
         if (witem) {
             tree.removeWriter({ level: witem.level, logname: witem.logname || '', wname })
             writers.delete(wname);
-            if (witem.onRemoved) {
-                witem.onRemoved()
+            if (witem.writer.onRemoved) {
+                witem.writer.onRemoved()
             }
         }
     }

@@ -2,13 +2,14 @@ import { LogLevel } from "./level";
 import { ILogItem } from "./common";
 
 export interface ILogWriter {
-    (l: ILogItem): void
+    (l: ILogItem): void;
+
+    onRemoved?: () => void;
 }
 
 export interface ILogWriterItem {
     wname?: string;
     logname?: string
-    onRemoved?: () => void;
     level: LogLevel;
     writer: ILogWriter
 }
