@@ -27,8 +27,7 @@
     "@types/mocha": "latest",
     "@types/node": "latest",
     "chai": "latest",
-    "mocha": "latest",
-    "source-map-support": "latest",
+    "mocha": "latest",    
     "ts-node": "latest",
     "typescript": "latest"
   },

@@ -109,7 +109,7 @@ export class Logger {
     }
 
 
-    action<T>(actionName: string, message: string, handle: () => T, opt?: {
+    async action<T>(actionName: string, message: string, handle: () => Promise<T>, opt?: {
 
         level?: {
             success?: LogLevel;
@@ -128,7 +128,7 @@ export class Logger {
                 }
                 e.addTag(`${actionName}.request`);
             })
-            let r: T = handle()
+            let r: T = await handle()
 
             this.logFn(opt?.level?.success || LogLevel.info, e => {
                 e.message = message;
