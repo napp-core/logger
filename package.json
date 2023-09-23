@@ -1,6 +1,6 @@
 {
   "name": "@napp/logger",
-  "version": "3.2.6",
+  "version": "3.2.7",
   "description": "low level log archigture. minimum resources, user friendly, powerfull logger library. supported browser & nodejs",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -27,7 +27,7 @@
     "@types/mocha": "latest",
     "@types/node": "latest",
     "chai": "latest",
-    "mocha": "latest",    
+    "mocha": "latest",
     "ts-node": "latest",
     "typescript": "latest"
   },
