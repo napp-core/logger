@@ -38,7 +38,7 @@ logger.infoFn(e => {
 try {
     //...
 } catch (error) {
-    logger.error('error log message', e=>e.errors[error])
+    logger.error('error log message', e=>e.setError(error))
 }
 
 
@@ -46,9 +46,9 @@ try {
 
 
 logger.errorFn(e => {
-    e.msg ='error log message'
-    e.attr({ a: 'foo', b: 'baa' })
-    e.tag('tag1','tag2').tag('tag3')
+    e.message ='error log message'
+    e.addAttr({ a: 'foo', b: 'baa' })
+    e.addTag('tag1','tag2').addTag('tag3')
 })
 
 
