@@ -1,4 +1,4 @@
-import { ILogAttr, ILogItem, OLogFactory } from "./common";
+import { ILogAttr, ILogItem, OLogFactory, IError, IAttrValue } from "./common";
 import { LogLevel } from "./level";
 import { ILogWriter } from "./writer";
 
@@ -7,35 +7,100 @@ import { ILogWriter } from "./writer";
 interface ICanLog {
     (level: LogLevel): boolean
 }
+function isObject(x: any): x is { [x: string]: IAttrValue } {
+    return x && typeof x === 'object'
+}
+function isString(x: any): x is string {
+    return (typeof x == 'string') || (x instanceof String)
+}
 
-export class LogBuilder {
-    message?: string;
-    track?: string;
-    attrs?: ILogAttr
-    tags?: string[]
-    errors?: any[];
+function isStringArray(x: any): x is Array<string> {
+    if (Array.isArray(x)) {
+        return x.every(i => isString(i))
+    }
+    return false
+}
+
+function logAttrMerge(target: ILogAttr, source: ILogAttr) {
+
+
+    if (!isObject(target) || !isObject(source)) {
+        return source;
+    }
+
+    Object.keys(source).forEach(key => {
+        const targetValue = target[key];
+        const sourceValue = source[key];
+
+        if (sourceValue === undefined) {
+            return
+        }
+        if (isStringArray(targetValue) && isStringArray(sourceValue)) {
+            target[key] = [... new Set<string>([...targetValue, ...sourceValue ])];
+        } else if (Array.isArray(targetValue) && Array.isArray(sourceValue)) {
+            target[key] = targetValue.concat(sourceValue);
+        } else if (isObject(targetValue) && isObject(sourceValue)) {
+            target[key] = logAttrMerge(Object.assign({}, targetValue), sourceValue);
+        } else {
+            target[key] = sourceValue;
+        }
+    });
+
+    return target;
+}
+
+export class AttrBuilder {
+
+    attrs: ILogAttr = {}
 
     addTag(...tags: string[]) {
-        this.tags = [... new Set<string>([...(this.tags || []), ...tags])]
+        logAttrMerge(this.attrs, { tags })
         return this;
     }
     addError(...errors: any[]) {
-        this.errors = [...(this.errors || []), ...errors]
+        logAttrMerge(this.attrs, { errors })
         return this;
     }
 
+    setError(error: any) {
+        this.attrs['error'] = error;
+        return this;
+    }
+
+
+
+    setMessageKey(key: string) {
+        this.attrs['msgKey'] = key;
+    }
+
+
+
+
+
+    /** alias of addAttr */
+    pushAttr(attr: ILogAttr) {
+        return this.addAttr(attr)
+    }
+
+    /** alias of addAttr */
     setAttr(attr: ILogAttr) {
-        this.attrs = {
-            ... (this.attrs || {}),
-            ...attr
-        }
+        return this.addAttr(attr)
+    }
+    addAttr(attr: ILogAttr) {
+        logAttrMerge(this.attrs, attr)
         return this;
     }
 
     setTrack(track: string) {
-        this.track = track;
+        this.attrs['track'] = track;
         return this
     }
+}
+
+export class LogBuilder extends AttrBuilder {
+    message?: string;
+
+
 
     setMessage(msg: string) {
         this.message = msg;
@@ -51,7 +116,9 @@ interface LogParamEx {
     (e: LogBuilder): void
 }
 
-
+interface AttrBuilderParam {
+    (e: AttrBuilder): void
+}
 
 
 
@@ -68,40 +135,40 @@ export class Logger {
 
 
     constructor(private logname: string, private canLog: ICanLog, private writer: ILogWriter, private opt: OLogger) {
-
+        
     }
 
-    fatal(msg: string, opt?: LogParamEx) {
+    fatal(msg: string, opt?: AttrBuilderParam) {
         return this.log(LogLevel.fatal, msg, opt);
     }
     fatalFn(fn: LogParamEx) {
         return this.logFn(LogLevel.fatal, fn);
     }
-    error(msg: string, opt?: LogParamEx) {
+    error(msg: string, opt?: AttrBuilderParam) {
         return this.log(LogLevel.error, msg, opt);
     }
     errorFn(fn: LogParamEx) {
         return this.logFn(LogLevel.error, fn);
     }
-    warn(msg: string, opt?: LogParamEx) {
+    warn(msg: string, opt?: AttrBuilderParam) {
         return this.log(LogLevel.warn, msg, opt);
     }
     warnFn(fn: LogParamEx) {
         return this.logFn(LogLevel.warn, fn);
     }
-    info(msg: string, opt?: LogParamEx) {
+    info(msg: string, opt?: AttrBuilderParam) {
         return this.log(LogLevel.info, msg, opt);
     }
     infoFn(fn: LogParamEx) {
         return this.logFn(LogLevel.info, fn);
     }
-    debug(msg: string, opt?: LogParamEx) {
+    debug(msg: string, opt?: AttrBuilderParam) {
         return this.log(LogLevel.debug, msg, opt);
     }
     debugFn(fn: LogParamEx) {
         return this.logFn(LogLevel.debug, fn);
     }
-    trace(msg: string, opt?: LogParamEx) {
+    trace(msg: string, opt?: AttrBuilderParam) {
         return this.log(LogLevel.trace, msg, opt);
     }
     traceFn(fn: LogParamEx) {
@@ -117,14 +184,21 @@ export class Logger {
             request?: LogLevel;
         }
         tags?: string[],
-        attr?: ILogAttr
+        attr?: ILogAttr,
+        track?: string
     }) {
         try {
             this.logFn(opt?.level?.request || LogLevel.debug, e => {
                 e.message = message;
-                e.attrs = opt?.attr;
+                if (opt?.attr) {
+                    e.addAttr(opt?.attr)
+                }
+
                 if (opt?.tags) {
                     e.addTag(...opt.tags)
+                }
+                if (opt?.track) {
+                    e.setTrack(opt.track)
                 }
                 e.addTag(`${actionName}.request`);
             })
@@ -132,79 +206,72 @@ export class Logger {
 
             this.logFn(opt?.level?.success || LogLevel.info, e => {
                 e.message = message;
-                e.attrs = opt?.attr;
+                if (opt?.attr) {
+                    e.addAttr(opt?.attr)
+                }
                 if (opt?.tags) {
                     e.addTag(...opt.tags)
                 }
-                e.addTag(`${actionName}.success`);
+                if (opt?.track) {
+                    e.setTrack(opt.track)
+                }
+                e.setMessageKey(`${actionName}.success`);
             })
 
             return r;
         } catch (error) {
             this.logFn(opt?.level?.fail || LogLevel.error, e => {
                 e.message = message;
-                e.attrs = opt?.attr;
-                e.addTag(`${actionName}.fail`);
+                if (opt?.attr) {
+                    e.addAttr(opt?.attr)
+                }
+
                 if (opt?.tags) {
                     e.addTag(...opt.tags)
                 }
-                if (error instanceof Error) {
-                    e.errors = [error]
+                if (opt?.track) {
+                    e.setTrack(opt.track)
                 }
+                e.setMessageKey(`${actionName}.fail`);
+                e.setError(error)
             })
             throw error;
         }
     }
 
-    f(msg: string, opt?: LogParamEx) {
+    f(msg: string, opt?: AttrBuilderParam) {
         return this.fatal(msg, opt);
     }
-    e(msg: string, opt?: LogParamEx) {
+    e(msg: string, opt?: AttrBuilderParam) {
         return this.error(msg, opt);
     }
-    w(msg: string, opt?: LogParamEx) {
+    w(msg: string, opt?: AttrBuilderParam) {
         return this.warn(msg, opt);
     }
-    i(msg: string, opt?: LogParamEx) {
+    i(msg: string, opt?: AttrBuilderParam) {
         return this.info(msg, opt);
     }
-    d(msg: string, opt?: LogParamEx) {
+    d(msg: string, opt?: AttrBuilderParam) {
         return this.debug(msg, opt);
     }
-    t(msg: string, opt?: LogParamEx) {
+    t(msg: string, opt?: AttrBuilderParam) {
         return this.trace(msg, opt);
     }
 
-    log(level: LogLevel, message: string, opt?: LogParamEx) {
+    log(level: LogLevel, message: string, opt?: AttrBuilderParam) {
         let can = this.canLog(level);
         if (can) {
-            let p = new LogBuilder().setMessage(message)
+            let p = new AttrBuilder()
             if (opt) {
                 opt(p)
             }
 
-            this._log(level, p)
+            let attrs = logAttrMerge(this.attr || {}, p.attrs)
+
+            this._log(level, message, attrs)
         }
     }
-    private _log(level: LogLevel, p: LogBuilder) {
-        let log: ILogItem = {
-            timestamp: Date.now(),
-            logname: this.logname,
-            level,
-            message: p.message,
-            attrs: (p.attrs || this.attr)
-                ? { ...(this.attr || {}), ...(p.attrs || {}) }
-                : undefined,
-            errors: p.errors,
-            tags: (p.tags || this.tags)
-                ? [... new Set<string>([...(this.tags || []), ...(p.tags || [])])]
-                : undefined,
-            track: p.track
-        }
 
-        this.writer(log);
-
-    }
     logFn(level: LogLevel, fn: LogParamEx) {
         let can = this.canLog(level);
         if (can) {
@@ -213,10 +280,28 @@ export class Logger {
 
             fn(p);
 
-            this._log(level, p)
+            let msg = p.message || '';
+            let attrs = logAttrMerge(this.attr || {}, p.attrs)
+
+            this._log(level, msg, attrs)
 
         }
     }
+
+    private _log(level: LogLevel, message: string, attrs: ILogAttr) {
+
+        let log: ILogItem = {
+            timestamp: Date.now(),
+            logname: this.logname,
+            level,
+            message,
+            attrs
+        }
+
+        this.writer(log);
+
+    }
+
 
 
 
@@ -229,20 +314,19 @@ export class Logger {
     }
 
 
-    get tags(): string[] | undefined {
+    // get tags(): string[] | undefined {
+    //     if (this.opt.parent) {
+    //         return [... (this.opt.parent.tags || []), ...(this.opt.tags || [])]
+    //     }
+    //     return this.opt.tags;
+    // }
+    get attr(): ILogAttr {
+        let _att = logAttrMerge(this.opt.attr || {}, { tags: this.opt.tags })
+
         if (this.opt.parent) {
-            return [... (this.opt.parent.tags || []), ...(this.opt.tags || [])]
+            logAttrMerge(_att, this.opt.parent.attr)
         }
-        return this.opt.tags;
-    }
-    get attr(): ILogAttr | undefined {
-        if (this.opt.parent && this.opt.attr) {
-            return { ... (this.opt.parent.attr || {}), ...(this.opt.attr || {}) }
-        }
-        if (this.opt.parent) {
-            return this.opt.parent.attr
-        }
-        return this.opt.attr;
+        return _att
     }
 
 }

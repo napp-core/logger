@@ -74,14 +74,14 @@ class BasicTest {
         try {
             throw new Error('check error')
         } catch (error) {
-            log.e(('error message'), e => e.errors = [error]);
+            log.e(('error message'), e => e.setError(error));
         }
 
 
 
         assert.deepEqual(
-            [['check error']],
-            this.buffer.map(l => (l.errors || []).map(e => e.message)),
+            ['check error'],
+            this.buffer.map((l: any) => l.attrs?.error?.message),
         )
     }
 
@@ -90,11 +90,11 @@ class BasicTest {
 
         let log = this.LogManager.factoryLogger('test');
 
-        log.i(('log attr'), e => e.tags = ['t1', 't2', 't3']);
+        log.i(('log attr'), e => e.addTag('t1', 't2', 't3'));
 
         assert.deepEqual(
             [['t1', 't2', 't3']],
-            this.buffer.map(l => l.tags || []),
+            this.buffer.map((l) => l.attrs?.tags || []),
         )
     }
 
@@ -123,14 +123,14 @@ class BasicTest {
             tags: ['ltag']
         });
 
-        log.i(('log attr'), e => e.tags = ['mtag']);
+        log.i(('log attr'), e => e.addTag('mtag'));
 
 
 
         assert.deepEqual(
             [['ltag', 'mtag']],
             this.buffer.map(l => {
-                return l.tags || []
+                return l.attrs?.tags || []
             }),
         )
     }
@@ -141,14 +141,14 @@ class BasicTest {
             tags: ['ltag', 'ta']
         });
 
-        log.i(('log attr'), e => e.tags = ['mtag', 'ta']);
+        log.i(('log attr'), e => e.addTag('mtag', 'ta'));
 
 
 
         assert.deepEqual(
             [['ltag', 'mtag', 'ta'].sort()],
             this.buffer.map(l => {
-                return (l.tags || []).sort()
+                return (l.attrs?.tags as string[] || []).sort()
             }),
         )
     }
@@ -168,17 +168,26 @@ class BasicTest {
 
         log.i(('child log'), e => {
             e.attrs = ({ a: 66, b: 77, c: 88 })
-            e.tags = ['t1', 't2', 't3']
+            e.addTag('t1', 't2', 't3');
         });
 
         assert.deepEqual(
             [['t1', 't2', 't3', 'ctag', 'ptag'].sort()],
-            this.buffer.map(l => (l.tags || []).sort()),
+            this.buffer.map(l => (l.attrs?.tags as string[] || []).sort()),
+            "deepEqual 1"
         )
 
         assert.deepEqual(
-            [{ pattr: 'pattr', cattr: 'cattr', a: 66, b: 77, c: 88 }],
-            this.buffer.map(l => (l.attrs || {})),
+            [{
+                pattr: 'pattr', cattr: 'cattr', a: 66, b: 77, c: 88,
+                tags: ['t1', 't2', 't3', 'ctag', 'ptag'].sort()
+            }],
+            this.buffer.map(l => {
+                let attr = (l.attrs || {});
+                attr.tags = (attr.tags as string[] || []).sort()
+                return attr
+            }),
+            "deepEqual 2"
         )
     }
 

@@ -1,18 +1,30 @@
 import { LogLevel } from "./level";
-export interface ILogAttr { [x: string]: any; }
+
+export type IAttrValue =
+    | string
+    | number
+    | boolean
+    | null
+    | undefined
+    | { [x: string]: IAttrValue }
+    | Array<IAttrValue>;
+
+export type ILogAttr = Record<string, IAttrValue>;
+
+export interface IError {
+    name: string;
+    message: string;
+    data?: { [x: string]: IAttrValue };
+    cause?: IError;
+    stack?: string;
+}
+
 export interface ILogItem {
     timestamp: number;
     level: LogLevel;
     logname: string;
-
-
     message?: string;
-
-    track?: string;
-
-    tags?: string[];
     attrs?: ILogAttr;
-    errors?: any[];
 }
 
 export interface OLogFactory {

@@ -13,7 +13,7 @@ export function sampleLogWriter(): ILogWriter {
 
         console.log('')
         console.log('------------------------------------------------------------------------------------')
-        console.log(`[${new Date(l.timestamp).toLocaleString()}] [${LogLevel[l.level]}] [${l.logname}]`, (l.tags || []).map(it => '#' + it).join(', ') || '', l.track || '')
+        console.log(`[${new Date(l.timestamp).toLocaleString()}] [${LogLevel[l.level]}] [${l.logname}]`)
         console.log(l.message)
         console.log('');
         let attr = l.attrs;
@@ -23,15 +23,6 @@ export function sampleLogWriter(): ILogWriter {
             console.log('sampleLogWriter attr print error');
             console.log(error);
             console.log('attr:', attr);
-        }
-
-        let errs = l.errors;
-        try {
-            errs && errs.length && console.log(errs.map(e => console.error(e)))
-        } catch (error) {
-            console.log('sampleLogWriter error print error');
-            console.log(error);
-            console.log('error:', errs);
         }
     }
 }
@@ -121,6 +112,7 @@ export function factoryLogManager() {
         addWriter: (witem: ILogWriterItem) => addWriter(witem),
         removeWriter: (name: string) => removeWriter(name),
         factoryLogger: (logname: string, opt?: OLogFactory) => {
+            
             return new Logger(logname,
                 (l) => tree.needRunning(logname, l),
                 (l) => write(l),
