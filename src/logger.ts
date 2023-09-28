@@ -90,6 +90,7 @@ export class AttrBuilder {
      */
     setLogKey(key: string) {
         this.attrs['logKey'] = key;
+        return this;
     }
 
     /** @deprecated  alias of addAttr */
