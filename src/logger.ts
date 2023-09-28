@@ -53,36 +53,52 @@ export class AttrBuilder {
 
     attrs: ILogAttr = {}
 
+    /**
+     * attrs key "tags" 
+     * @param tags string array
+     * @returns 
+     */
     addTag(...tags: string[]) {
         logAttrMerge(this.attrs, { tags })
         return this;
     }
+
+    /**
+     * attrs key "errors"
+     * @deprecated
+     * @param errors errors
+     * @returns 
+     */
     addError(...errors: any[]) {
         logAttrMerge(this.attrs, { errors })
         return this;
     }
 
+    /**
+     * attrs key "error"
+     * @param error any error
+     * @returns 
+     */
     setError(error: any) {
         this.attrs['error'] = error;
         return this;
     }
 
-
-
-    setMessageKey(key: string) {
-        this.attrs['msgKey'] = key;
+    /**
+     * attrs key "logKey"
+     * @param key string
+     */
+    setLogKey(key: string) {
+        this.attrs['logKey'] = key;
     }
 
-
-
-
-
-    /** alias of addAttr */
+    /** @deprecated  alias of addAttr */
     pushAttr(attr: ILogAttr) {
         return this.addAttr(attr)
     }
 
     /** alias of addAttr */
+    /** @deprecated  alias of addAttr */
     setAttr(attr: ILogAttr) {
         return this.addAttr(attr)
     }
@@ -91,6 +107,11 @@ export class AttrBuilder {
         return this;
     }
 
+    /**
+     * attrs key "track"
+     * @param track string
+     * @returns 
+     */
     setTrack(track: string) {
         this.attrs['track'] = track;
         return this
@@ -99,8 +120,6 @@ export class AttrBuilder {
 
 export class LogBuilder extends AttrBuilder {
     message?: string;
-
-
 
     setMessage(msg: string) {
         this.message = msg;
@@ -215,7 +234,7 @@ export class Logger {
                 if (opt?.track) {
                     e.setTrack(opt.track)
                 }
-                e.setMessageKey(`${actionName}.success`);
+                e.setLogKey(`${actionName}.success`);
             })
 
             return r;
@@ -232,7 +251,7 @@ export class Logger {
                 if (opt?.track) {
                     e.setTrack(opt.track)
                 }
-                e.setMessageKey(`${actionName}.fail`);
+                e.setLogKey(`${actionName}.fail`);
                 e.setError(error)
             })
             throw error;
