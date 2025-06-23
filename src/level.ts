@@ -1,5 +1,3 @@
-import { trace } from "console";
-
 export enum LogLevel {
     fatal = 0,
     error = 10,
